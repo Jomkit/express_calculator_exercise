@@ -1,16 +1,31 @@
 const express = require('express');
-const {CustomError} = require('./customErrors');
+const fs = require('fs');
+// const {CustomError} = require('./customErrors');
 const { formatResponse, mean, median, mode } = require('./mathOps')
 
 app = express();
 
+function writeResults(content) {
+    fs.writeFile('./results.json', JSON.stringify(content), 
+        err => {
+            if(err) throw err;
+            console.log('results written to results.json');
+        });
+}
 
 app.get('/mean', (req, res, next) => {
     // debugger;
+    const {save=false} = req.query;
     try{
         let meanVal = mean(req.query['numbers']);
         
         let operation = formatResponse('mean', meanVal);
+
+        if(save){
+            console.log('saving results...');
+            writeResults(operation);
+        }
+        
         return res.send(operation);
     } catch(err) {
         next(err);
@@ -18,31 +33,56 @@ app.get('/mean', (req, res, next) => {
 })
 
 app.get('/median', (req, res) => {
-    let medianVal = median(req.query['numbers']);
+    const {save=false} = req.query;
 
+    let medianVal = median(req.query['numbers']);
+    
     let operation = formatResponse('median', medianVal);
+    
+        if(save){
+            console.log('saving results...');
+            writeResults(operation);
+        }
+        
     return res.send(operation);
 })
 
 app.get('/mode', (req, res) => {
-    let modeVal = mode(req.query['numbers']);
+    const {save=false} = req.query;
 
+    let modeVal = mode(req.query['numbers']);
+    
     let operation = formatResponse('mode', modeVal);
+    
+        if(save){
+            console.log('saving results...');
+            writeResults(operation);
+        }
+
     return res.send(operation);
 })
 
 app.get('/all', (req, res) => {
+    const {save=false} = req.query;
+
     let vals = req.query['numbers'];
     let meanVal = mean(vals);
     let medianVal = median(vals);
     let modeVal = mode(vals);
 
-    return res.send({
+    let operation = {
         operation: 'all',
         mean: meanVal,
         median: medianVal,
         mode: modeVal
-    })
+    }
+
+    if(save){
+        console.log('saving results...');
+        writeResults(operation);
+    }
+
+    return res.send(operation);
 })
 
 app.use(function(err, req, res, next) {
