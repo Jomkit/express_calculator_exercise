@@ -1,10 +1,12 @@
 const express = require('express');
 const {CustomError} = require('./customErrors');
-const { formatResponse, mean, median } = require('./mathOps')
+const { formatResponse, mean, median, mode } = require('./mathOps')
 
 app = express();
 
-function meanRoute(req, res, next){
+
+app.get('/mean', (req, res, next) => {
+    // debugger;
     try{
         let meanVal = mean(req.query['numbers']);
         
@@ -13,23 +15,34 @@ function meanRoute(req, res, next){
     } catch(err) {
         next(err);
     }
-}
-app.get('/mean', meanRoute);
+})
 
-function medianRoute(req, res, next){
+app.get('/median', (req, res) => {
     let medianVal = median(req.query['numbers']);
-    
+
     let operation = formatResponse('median', medianVal);
     return res.send(operation);
-
-}
-app.get('/median', medianRoute);
+})
 
 app.get('/mode', (req, res) => {
-    let modeVal = mode(req,query['numbers']);
+    let modeVal = mode(req.query['numbers']);
 
     let operation = formatResponse('mode', modeVal);
     return res.send(operation);
+})
+
+app.get('/all', (req, res) => {
+    let vals = req.query['numbers'];
+    let meanVal = mean(vals);
+    let medianVal = median(vals);
+    let modeVal = mode(vals);
+
+    return res.send({
+        operation: 'all',
+        mean: meanVal,
+        median: medianVal,
+        mode: modeVal
+    })
 })
 
 app.use(function(err, req, res, next) {
